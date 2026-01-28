@@ -29,10 +29,10 @@ function setMode(mode){
     panel2d.classList.add('hidden');
     stage2d.classList.add('hidden');
     status.textContent = 'Modo 3D';
-    // garante resize do 3D quando entra
-    requestAnimationFrame(() => resize3D());
+    requestAnimationFrame(() => window.__resize3D?.());
   }
 }
+
 mode2dBtn.addEventListener('click', () => setMode('2d'));
 mode3dBtn.addEventListener('click', () => setMode('3d'));
 
@@ -43,7 +43,7 @@ const svg = document.getElementById('svg2d');
 const clear2dBtn = document.getElementById('clear2d');
 
 let selected2D = null;
-let drag2D = { on:false, startX:0, startY:0, origX:0, origY:0 };
+let drag2D = { on:false, startX:0, startY:0, origX:0, origY:0, origPoints:null };
 
 function svgPoint(evt){
   const pt = svg.createSVGPoint();
@@ -90,7 +90,6 @@ function createCircle(){
 
 function createTriangle(){
   const p = makeShapeBase(document.createElementNS('http://www.w3.org/2000/svg', 'polygon'));
-  // triângulo simples
   p.setAttribute('points', '520,220 640,420 400,420');
   svg.appendChild(p);
   select2D(p);
@@ -115,6 +114,7 @@ svg.addEventListener('pointerdown', (evt) => {
   if (target && target.dataset && target.dataset.shape === 'true'){
     select2D(target);
     drag2D.on = true;
+
     const p = svgPoint(evt);
 
     if (target.tagName === 'rect'){
@@ -126,11 +126,11 @@ svg.addEventListener('pointerdown', (evt) => {
       drag2D.origX = parseFloat(target.getAttribute('cx'));
       drag2D.origY = parseFloat(target.getAttribute('cy'));
     } else if (target.tagName === 'polygon'){
-      // para polígono, guardamos todos os pontos
       drag2D.startX = p.x; drag2D.startY = p.y;
       drag2D.origPoints = target.getAttribute('points')
         .trim().split(/\s+/).map(pair => pair.split(',').map(Number));
     }
+
     target.setPointerCapture(evt.pointerId);
     target.style.cursor = 'grabbing';
   } else {
@@ -140,6 +140,7 @@ svg.addEventListener('pointerdown', (evt) => {
 
 svg.addEventListener('pointermove', (evt) => {
   if (!drag2D.on || !selected2D) return;
+
   const p = svgPoint(evt);
   const dx = p.x - drag2D.startX;
   const dy = p.y - drag2D.startY;
@@ -156,14 +157,14 @@ svg.addEventListener('pointermove', (evt) => {
   }
 });
 
-svg.addEventListener('pointerup', (evt) => {
+svg.addEventListener('pointerup', () => {
   if (!drag2D.on) return;
   drag2D.on = false;
   if (selected2D) selected2D.style.cursor = 'grab';
 });
 
 // ===============================
-//  3D (Three.js) — cena, seleção e objetos pré-definidos
+//  3D (Three.js) — TransformControls funcionando (FIX)
 // ===============================
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -171,19 +172,20 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
 const canvas3d = document.getElementById('canvas3d');
 const delete3dBtn = document.getElementById('delete3d');
-const reset3dBtn = document.getElementById('reset3d');
-const clear3dBtn = document.getElementById('clear3d');
+const reset3dBtn  = document.getElementById('reset3d');
+const clear3dBtn  = document.getElementById('clear3d');
 
-const tMove = document.getElementById('tMove');
+const tMove   = document.getElementById('tMove');
 const tRotate = document.getElementById('tRotate');
-const tScale = document.getElementById('tScale');
+const tScale  = document.getElementById('tScale');
 
 let renderer, scene, camera, orbit, transform, raycaster, mouse;
 let selected3D = null;
 let objects3D = [];
+let isTransforming = false;
 
 init3D();
-animate();
+animate3D();
 
 function init3D(){
   renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true, alpha: true });
@@ -194,63 +196,71 @@ function init3D(){
   camera = new THREE.PerspectiveCamera(50, 1, 0.1, 2000);
   camera.position.set(6, 5, 9);
 
-  orbit = new OrbitControls(camera, canvas3d);
+  orbit = new OrbitControls(camera, renderer.domElement);
   orbit.enableDamping = true;
 
-  transform = new TransformControls(camera, canvas3d);
+  transform = new TransformControls(camera, renderer.domElement);
+
+  // Tamanho do gizmo (mais fácil de pegar)
+  transform.setSize(1.15);
+
   transform.addEventListener('dragging-changed', (e) => {
+    isTransforming = e.value;
     orbit.enabled = !e.value;
   });
+
+  transform.addEventListener('mouseDown', () => { isTransforming = true; });
+  transform.addEventListener('mouseUp',   () => { isTransforming = false; });
+
   scene.add(transform);
 
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
 
-  // luz suave estilo "clean"
-  const hemi = new THREE.HemisphereLight(0xffffff, 0xddddff, 0.9);
-  scene.add(hemi);
-
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xddddff, 0.9));
   const dir = new THREE.DirectionalLight(0xffffff, 0.85);
   dir.position.set(6, 10, 8);
   scene.add(dir);
 
-  // chão/grid
   const grid = new THREE.GridHelper(20, 20, 0x000000, 0x000000);
   grid.material.opacity = 0.08;
   grid.material.transparent = true;
   scene.add(grid);
 
-  // eixos discretos
   const axes = new THREE.AxesHelper(4);
   axes.material.opacity = 0.35;
   axes.material.transparent = true;
   scene.add(axes);
 
-  // eventos
-  canvas3d.addEventListener('pointerdown', onPointerDown3D);
+  renderer.domElement.addEventListener('pointerdown', onPointerDown3D);
+
   window.addEventListener('resize', resize3D);
   resize3D();
 
   setTransformMode('translate');
+  // expõe pro setMode('3d') forçar resize ao abrir
+  window.__resize3D = resize3D;
 }
 
 function resize3D(){
   const rect = canvas3d.getBoundingClientRect();
   const w = Math.max(2, rect.width);
   const h = Math.max(2, rect.height);
+
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }
 
-function animate(){
-  requestAnimationFrame(animate);
+function animate3D(){
+  requestAnimationFrame(animate3D);
   orbit.update();
   renderer.render(scene, camera);
 }
 
 function setTransformMode(mode){
   transform.setMode(mode);
+
   [tMove, tRotate, tScale].forEach(b => b.classList.remove('active'));
   if (mode === 'translate') tMove.classList.add('active');
   if (mode === 'rotate') tRotate.classList.add('active');
@@ -275,24 +285,17 @@ function addObject3D(kind){
   let geom;
 
   switch (kind){
-    case 'cube': geom = new THREE.BoxGeometry(2,2,2); break;
-    case 'sphere': geom = new THREE.SphereGeometry(1.2, 32, 24); break;
+    case 'cube':     geom = new THREE.BoxGeometry(2,2,2); break;
+    case 'sphere':   geom = new THREE.SphereGeometry(1.2, 32, 24); break;
     case 'cylinder': geom = new THREE.CylinderGeometry(1, 1, 2.4, 32); break;
-    case 'cone': geom = new THREE.ConeGeometry(1.2, 2.6, 32); break;
-    case 'plane': geom = new THREE.PlaneGeometry(3.2, 3.2, 1, 1); break;
-    default: geom = new THREE.BoxGeometry(2,2,2);
+    case 'cone':     geom = new THREE.ConeGeometry(1.2, 2.6, 32); break;
+    case 'plane':    geom = new THREE.PlaneGeometry(3.2, 3.2, 1, 1); break;
+    default:         geom = new THREE.BoxGeometry(2,2,2);
   }
 
   const mesh = new THREE.Mesh(geom, materialClean());
-  mesh.position.set(
-    (Math.random() - 0.5) * 1.2,
-    1.5,
-    (Math.random() - 0.5) * 1.2
-  );
-  mesh.castShadow = false;
-  mesh.receiveShadow = false;
+  mesh.position.set((Math.random() - 0.5) * 1.2, 1.5, (Math.random() - 0.5) * 1.2);
 
-  // contorno sutil com Wireframe
   const wire = new THREE.LineSegments(
     new THREE.WireframeGeometry(geom),
     new THREE.LineBasicMaterial({ color: 0x0a0a0a, transparent: true, opacity: 0.28 })
@@ -311,13 +314,14 @@ document.querySelectorAll('[data-3d]').forEach(btn => {
 function select3D(obj){
   selected3D = obj;
   transform.detach();
-  if (selected3D){
-    transform.attach(selected3D);
-  }
+  if (selected3D) transform.attach(selected3D);
 }
 
 function onPointerDown3D(evt){
-  const rect = canvas3d.getBoundingClientRect();
+  // não mudar seleção se estiver arrastando o gizmo / eixo do gizmo ativo
+  if (isTransforming || transform.axis !== null) return;
+
+  const rect = renderer.domElement.getBoundingClientRect();
   const x = ((evt.clientX - rect.left) / rect.width) * 2 - 1;
   const y = -(((evt.clientY - rect.top) / rect.height) * 2 - 1);
   mouse.set(x, y);
@@ -326,10 +330,9 @@ function onPointerDown3D(evt){
   const hits = raycaster.intersectObjects(objects3D, true);
 
   if (hits.length){
-    // pega o mesh principal (pai)
     let o = hits[0].object;
     while (o && !objects3D.includes(o)) o = o.parent;
-    select3D(o || hits[0].object);
+    select3D(o || null);
   } else {
     select3D(null);
   }
@@ -337,7 +340,6 @@ function onPointerDown3D(evt){
 
 delete3dBtn.addEventListener('click', () => {
   if (!selected3D) return;
-  // remove do array e da cena
   objects3D = objects3D.filter(o => o !== selected3D);
   scene.remove(selected3D);
   select3D(null);
