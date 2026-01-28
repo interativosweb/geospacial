@@ -3,109 +3,227 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GeoSpacial — Geometria Espacial</title>
+  <title>GeoSpacial — 2D/3D</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="dot"></div>
-        <div>
-          <div class="brand-title">GeoSpacial</div>
-          <div class="brand-sub">MVP • 2D + 3D</div>
-        </div>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="logo-dot"></div>
+      <div class="title">
+        <div class="title-main">GeoSpacial</div>
+        <div class="title-sub">Geometria espacial • clean</div>
       </div>
+    </div>
 
-      <div class="section">
-        <div class="section-title">Modo</div>
-        <div class="segmented">
-          <button id="mode2d" class="seg active">2D</button>
-          <button id="mode3d" class="seg">3D</button>
-        </div>
+    <div class="topbar-center">
+      <button class="pill active" id="btnMode3D">3D</button>
+      <button class="pill" id="btnMode2D">2D</button>
+    </div>
+
+    <div class="topbar-right">
+      <span class="status" id="status">3D • Selecionar</span>
+      <button class="iconbtn" id="btnResetView" title="Reset câmera (3D)">⟲</button>
+    </div>
+  </header>
+
+  <!-- Floating toolbox (GeoGebra-like) -->
+  <aside class="toolbox" id="toolbox">
+    <div class="toolbox-head">
+      <button class="iconbtn" id="btnToggleTools" title="Recolher/Expandir">≡</button>
+      <div class="toolbox-title">Ferramentas</div>
+    </div>
+
+    <!-- Movement Tools -->
+    <section class="toolgroup">
+      <button class="groupbtn" data-group="move">Movement</button>
+      <div class="groupbody" id="group-move">
+        <button class="toolbtn active" data-tool="select3d" data-mode="3d" title="Move (selecionar)">
+          ⟡ <span>Move</span>
+        </button>
+        <button class="toolbtn" data-tool="orbit3d" data-mode="3d" title="Rotacionar a vista (Orbit)">
+          ⟳ <span>Rotate View</span>
+        </button>
+        <button class="toolbtn" data-tool="pan3d" data-mode="3d" title="Mover a vista (Pan)">
+          ↔ <span>Move View</span>
+        </button>
+        <button class="toolbtn" data-tool="zoom3d" data-mode="3d" title="Zoom (mouse/trackpad)">
+          🔍 <span>Zoom</span>
+        </button>
       </div>
+    </section>
 
-      <div id="panel2d" class="section">
-        <div class="section-title">Formas 2D</div>
-        <div class="btn-grid">
-          <button class="btn" data-2d="rect">Quadrado/Retângulo</button>
-          <button class="btn" data-2d="triangle">Triângulo</button>
-          <button class="btn" data-2d="circle">Círculo</button>
-        </div>
-
-        <div class="section-title">Ações 2D</div>
-        <div class="btn-grid">
-          <button class="btn secondary" id="clear2d">Limpar 2D</button>
-        </div>
-
-        <div class="hint">
-          <b>Dica:</b> clique para selecionar e arraste para mover.
-        </div>
+    <!-- Point Tools (placeholders nesta versão) -->
+    <section class="toolgroup">
+      <button class="groupbtn" data-group="points">Points</button>
+      <div class="groupbody" id="group-points">
+        <button class="toolbtn disabled" title="Em breve: Point">
+          • <span>Point</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Point on Object">
+          ⊙ <span>Point on Object</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Intersect">
+          ⨯ <span>Intersect</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Midpoint or Center">
+          ◉ <span>Midpoint/Center</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Attach / Detach Point">
+          ⛓ <span>Attach/Detach</span>
+        </button>
       </div>
+    </section>
 
-      <div id="panel3d" class="section hidden">
-        <div class="section-title">Objetos 3D</div>
-        <div class="btn-grid">
-          <button class="btn" data-3d="cube">Cubo</button>
-          <button class="btn" data-3d="sphere">Esfera</button>
-          <button class="btn" data-3d="cylinder">Cilindro</button>
-          <button class="btn" data-3d="cone">Cone</button>
-          <button class="btn" data-3d="plane">Plano</button>
-        </div>
-
-        <div class="section-title">Transformação</div>
-        <div class="segmented">
-          <button class="seg active" id="tMove">Mover</button>
-          <button class="seg" id="tRotate">Rotacionar</button>
-          <button class="seg" id="tScale">Escalar</button>
-        </div>
-
-        <div class="section-title">Ações 3D</div>
-        <div class="btn-grid">
-          <button class="btn secondary" id="delete3d">Excluir selecionado</button>
-          <button class="btn secondary" id="reset3d">Reset câmera</button>
-          <button class="btn secondary" id="clear3d">Limpar 3D</button>
-        </div>
-
-        <div class="hint">
-          <b>Dica:</b> botão esquerdo = orbitar • scroll = zoom • clique no objeto para selecionar • arraste o gizmo para transformar.
-        </div>
+    <!-- Line Tools (placeholders) -->
+    <section class="toolgroup">
+      <button class="groupbtn" data-group="lines">Lines</button>
+      <div class="groupbody" id="group-lines">
+        <button class="toolbtn disabled" title="Em breve: Line">
+          ╱ <span>Line</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Segment">
+          ─ <span>Segment</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Segment with Given Length">
+          ━ <span>Fixed Segment</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Ray">
+          ➝ <span>Ray</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Vector">
+          ⇀ <span>Vector</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Vector from Point">
+          ⇢ <span>Vector from Point</span>
+        </button>
       </div>
+    </section>
 
-      <div class="footer">
-        <div class="tiny">Feito com SVG (2D) + Three.js (3D).</div>
+    <!-- Plane Tools (um plano simples funcional) -->
+    <section class="toolgroup">
+      <button class="groupbtn" data-group="planes">Planes</button>
+      <div class="groupbody" id="group-planes">
+        <button class="toolbtn" data-tool="addPlane" data-mode="3d" title="Adicionar Plano">
+          ▭ <span>Plane</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Plane through 3 Points">
+          △ <span>Plane (3 pts)</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Perpendicular Plane">
+          ⟂ <span>Perpendicular</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Parallel Plane">
+          ∥ <span>Parallel</span>
+        </button>
       </div>
-    </aside>
+    </section>
 
-    <main class="main">
-      <header class="topbar">
-        <div class="title">Geometria Espacial, sem bagunça.</div>
-        <div class="badge" id="status">Modo 2D</div>
-      </header>
+    <!-- Solids / Basic 3D Objects (funcional) -->
+    <section class="toolgroup">
+      <button class="groupbtn" data-group="solids">Solids</button>
+      <div class="groupbody" id="group-solids">
+        <button class="toolbtn" data-tool="addCube" data-mode="3d" title="Adicionar Cubo">
+          ◼ <span>Cube</span>
+        </button>
+        <button class="toolbtn" data-tool="addSphere" data-mode="3d" title="Adicionar Esfera">
+          ● <span>Sphere</span>
+        </button>
+        <button class="toolbtn" data-tool="addCylinder" data-mode="3d" title="Adicionar Cilindro">
+          ⊘ <span>Cylinder</span>
+        </button>
+        <button class="toolbtn" data-tool="addCone" data-mode="3d" title="Adicionar Cone">
+          ▲ <span>Cone</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Prism / Pyramid / Net / etc.">
+          ⧉ <span>Prism/Pyramid…</span>
+        </button>
+      </div>
+    </section>
 
-      <section class="stage">
-        <!-- 2D -->
-        <div id="stage2d" class="stage-layer">
-          <svg id="svg2d" class="svg2d" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
-            <defs>
-              <filter id="shadow">
-                <feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity="0.18"/>
-              </filter>
-            </defs>
-            <rect x="30" y="30" width="940" height="640" rx="18" ry="18"
-                  fill="rgba(255,255,255,0.65)" stroke="rgba(0,0,0,0.07)" />
-          </svg>
-        </div>
+    <!-- Measurement Tools (placeholder de medidas estilo GeoGebra) -->
+    <section class="toolgroup">
+      <button class="groupbtn" data-group="measure">Measurement</button>
+      <div class="groupbody" id="group-measure">
+        <button class="toolbtn disabled" title="Em breve: Distance/Length">
+          ↕ <span>Distance</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Angle">
+          ∠ <span>Angle</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Area">
+          ⬚ <span>Area</span>
+        </button>
+        <button class="toolbtn disabled" title="Em breve: Volume">
+          ◻︎ <span>Volume</span>
+        </button>
+      </div>
+    </section>
 
-        <!-- 3D -->
-        <div id="stage3d" class="stage-layer hidden">
-          <canvas id="canvas3d"></canvas>
-        </div>
-      </section>
-    </main>
-  </div>
+    <!-- Transform Controls (funcional) -->
+    <section class="toolgroup">
+      <button class="groupbtn" data-group="transform">Transform</button>
+      <div class="groupbody" id="group-transform">
+        <button class="toolbtn active" data-tool="tMove" data-mode="3d" title="Mover objeto">
+          ↕ <span>Move</span>
+        </button>
+        <button class="toolbtn" data-tool="tRotate" data-mode="3d" title="Rotacionar objeto">
+          ⟲ <span>Rotate</span>
+        </button>
+        <button class="toolbtn" data-tool="tScale" data-mode="3d" title="Escalar objeto">
+          ⤢ <span>Scale</span>
+        </button>
+        <div class="divider"></div>
+        <button class="toolbtn" data-tool="deleteSelected" data-mode="3d" title="Excluir selecionado">
+          ⌫ <span>Delete</span>
+        </button>
+        <button class="toolbtn" data-tool="clearAll3D" data-mode="3d" title="Limpar tudo">
+          ✕ <span>Clear</span>
+        </button>
+      </div>
+    </section>
 
-  <!-- Three.js via importmap -->
+    <!-- 2D quick tools (funcional e simples) -->
+    <section class="toolgroup">
+      <button class="groupbtn" data-group="2d">2D Tools</button>
+      <div class="groupbody" id="group-2d">
+        <button class="toolbtn" data-tool="rect2d" data-mode="2d" title="Retângulo/Quadrado">
+          ▢ <span>Rect</span>
+        </button>
+        <button class="toolbtn" data-tool="tri2d" data-mode="2d" title="Triângulo">
+          △ <span>Triangle</span>
+        </button>
+        <button class="toolbtn" data-tool="circle2d" data-mode="2d" title="Círculo">
+          ◯ <span>Circle</span>
+        </button>
+        <button class="toolbtn" data-tool="clear2d" data-mode="2d" title="Limpar 2D">
+          ✕ <span>Clear</span>
+        </button>
+      </div>
+    </section>
+  </aside>
+
+  <!-- Main canvas area (full screen, no borders) -->
+  <main class="workspace">
+    <!-- 2D layer -->
+    <div class="layer hidden" id="layer2d">
+      <svg id="svg2d" class="svg2d" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <filter id="softShadow">
+            <feDropShadow dx="0" dy="10" stdDeviation="12" flood-opacity="0.16"/>
+          </filter>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- 3D layer -->
+    <div class="layer" id="layer3d">
+      <canvas id="canvas3d"></canvas>
+    </div>
+  </main>
+
+  <!-- Three.js via importmap (MVP). Em versão robusta de produção, o ideal é Vite + npm. -->
   <script type="importmap">
   {
     "imports": {
