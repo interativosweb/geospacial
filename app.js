@@ -1,6 +1,11 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { TransformControls } from 'three/addons/controls/TransformControls.js';
+// Marca que o app carregou (remove o aviso do index.html)
+window.__APP_OK = true;
+console.log('GeoSpacial carregou ✅');
+
+// Imports diretos (sem importmap)
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+import { TransformControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/TransformControls.js';
 
 /* =========================
    UI / Modos
@@ -28,17 +33,14 @@ function setMode(next){
     btnMode3D.classList.add('active');
     btnMode2D.classList.remove('active');
     resize3D();
-    setStatus();
   } else {
     layer2d.classList.remove('hidden');
     layer3d.classList.add('hidden');
     btnMode2D.classList.add('active');
     btnMode3D.classList.remove('active');
-    setStatus();
   }
-
-  // destaca ferramentas compatíveis (não desabilita, só informa por "mode" nos data attrs)
-  refreshToolHighlights();
+  setStatus();
+  refreshToolOpacity();
 }
 
 btnMode3D.addEventListener('click', () => setMode('3d'));
@@ -49,19 +51,16 @@ btnToggleTools.addEventListener('click', () => {
 });
 
 btnResetView.addEventListener('click', () => {
-  if (mode !== '3d') return;
-  resetCamera();
+  if (mode === '3d') resetCamera();
 });
 
 function setActiveTool(tool){
   activeTool = tool;
-  document.querySelectorAll('.toolbtn').forEach(b => b.classList.remove('active'));
 
-  // marca ativo apenas se existir botão correspondente
+  document.querySelectorAll('.toolbtn').forEach(b => b.classList.remove('active'));
   const btn = document.querySelector(`.toolbtn[data-tool="${tool}"]`);
   if (btn) btn.classList.add('active');
 
-  // se for transform tool, sincroniza transform controls
   if (tool === 'tMove') setTransformMode('translate');
   if (tool === 'tRotate') setTransformMode('rotate');
   if (tool === 'tScale') setTransformMode('scale');
@@ -83,10 +82,9 @@ function setStatus(){
   statusEl.textContent = `${mode.toUpperCase()} • ${pretty(activeTool)}`;
 }
 
-function refreshToolHighlights(){
+function refreshToolOpacity(){
   document.querySelectorAll('.toolbtn[data-mode]').forEach(btn => {
     const m = btn.getAttribute('data-mode');
-    // Botão aparece sempre, mas se não for do modo atual, deixa “menos forte”
     btn.style.opacity = (m === mode) ? '1' : '0.55';
   });
 }
@@ -104,17 +102,14 @@ document.querySelectorAll('.groupbtn').forEach(g => {
 /* Clique nas ferramentas */
 document.querySelectorAll('.toolbtn').forEach(btn => {
   btn.addEventListener('click', () => {
-    if (btn.classList.contains('disabled')) return;
-
     const tool = btn.dataset.tool;
     const toolMode = btn.dataset.mode;
 
-    // Se clicar numa ferramenta 2D estando no 3D (ou vice-versa), muda modo automaticamente
     if (toolMode && toolMode !== mode){
       setMode(toolMode);
     }
 
-    // Ações imediatas
+    // Ações imediatas 3D
     if (tool === 'addCube') return addObject3D('cube');
     if (tool === 'addSphere') return addObject3D('sphere');
     if (tool === 'addCylinder') return addObject3D('cylinder');
@@ -124,12 +119,13 @@ document.querySelectorAll('.toolbtn').forEach(btn => {
     if (tool === 'deleteSelected') return deleteSelected3D();
     if (tool === 'clearAll3D') return clearAll3D();
 
+    // Ações imediatas 2D
     if (tool === 'rect2d') return createRect2D();
     if (tool === 'tri2d') return createTriangle2D();
     if (tool === 'circle2d') return createCircle2D();
     if (tool === 'clear2d') return clear2D();
 
-    // Ferramentas “de estado”
+    // Ferramentas de estado
     if (tool) setActiveTool(tool);
   });
 });
@@ -137,10 +133,10 @@ document.querySelectorAll('.toolbtn').forEach(btn => {
 /* Inicial */
 setMode('3d');
 setActiveTool('select3d');
-refreshToolHighlights();
+refreshToolOpacity();
 
 /* =========================
-   2D — SVG simples (sem moldura)
+   2D — SVG simples
 ========================= */
 const svg = document.getElementById('svg2d');
 
@@ -257,7 +253,7 @@ svg.addEventListener('pointerup', () => {
 });
 
 /* =========================
-   3D — Three.js (seleção + objetos + TransformControls)
+   3D — Three.js
 ========================= */
 const canvas3d = document.getElementById('canvas3d');
 
@@ -282,8 +278,6 @@ function init3D(){
   orbit = new OrbitControls(camera, renderer.domElement);
   orbit.enableDamping = true;
   orbit.dampingFactor = 0.08;
-
-  // “Apple clean”: limites leves
   orbit.minDistance = 2.5;
   orbit.maxDistance = 80;
 
@@ -299,13 +293,11 @@ function init3D(){
 
   scene.add(transform);
 
-  // iluminação suave
   scene.add(new THREE.HemisphereLight(0xffffff, 0xe6e6ff, 0.92));
   const key = new THREE.DirectionalLight(0xffffff, 0.85);
   key.position.set(10, 16, 12);
   scene.add(key);
 
-  // grid discreta
   const grid = new THREE.GridHelper(40, 40, 0x000000, 0x000000);
   grid.material.opacity = 0.06;
   grid.material.transparent = true;
@@ -350,7 +342,8 @@ function resetCamera(){
 
 function setTransformMode(modeName){
   transform.setMode(modeName);
-  // destaca botões transform
+
+  // mantém o “active” nos botões de transformação
   document.querySelectorAll('.toolbtn[data-tool="tMove"],.toolbtn[data-tool="tRotate"],.toolbtn[data-tool="tScale"]').forEach(b => b.classList.remove('active'));
   const map = { translate: 'tMove', rotate: 'tRotate', scale: 'tScale' };
   const id = map[modeName];
@@ -389,11 +382,8 @@ function addObject3D(kind){
   }
 
   const mesh = new THREE.Mesh(geom, materialClean());
-
-  // posição inicial agradável
   mesh.position.set((Math.random()-0.5)*1.4, kind === 'plane' ? 0.02 : 1.6, (Math.random()-0.5)*1.4);
 
-  // se for plano, deixa deitado (tipo “chão”)
   if (kind === 'plane'){
     mesh.rotation.x = -Math.PI / 2;
     mesh.material.opacity = 0.35;
@@ -404,7 +394,7 @@ function addObject3D(kind){
   objects3D.push(mesh);
 
   select3D(mesh);
-  setActiveTool('tMove'); // já deixa pronto pra arrastar
+  setActiveTool('tMove'); // já pronto pra arrastar
 }
 
 function select3D(obj){
@@ -416,11 +406,9 @@ function select3D(obj){
 function onPointerDown3D(evt){
   if (mode !== '3d') return;
 
-  // Se estiver mexendo no gizmo, não altera seleção
+  // se estiver mexendo no gizmo, não altera seleção
   if (isTransforming || transform.axis !== null) return;
 
-  // Ferramentas de navegação: orbit/pan/zoom são do próprio OrbitControls
-  // Aqui a gente só faz seleção quando a ferramenta ativa for "select3d" ou uma transform.
   const allowSelect = (activeTool === 'select3d' || activeTool === 'tMove' || activeTool === 'tRotate' || activeTool === 'tScale');
   if (!allowSelect) return;
 
@@ -456,17 +444,3 @@ function clearAll3D(){
   objects3D = [];
   select3D(null);
 }
-
-/* =========================
-   Ajustes finos: Pan/Zoom tool (UX)
-========================= */
-/**
- * GeoGebra tem ferramentas de “Move/Rotate/Zoom”.
- * Aqui, OrbitControls já faz tudo por padrão.
- * Mas a gente usa o estado activeTool para orientar o usuário.
- */
-function applyNavMode(){
-  // Mantém orbit sempre possível; só muda mensagem/estado.
-  // Se você quiser travar, dá pra configurar orbit.mouseButtons.
-}
-applyNavMode();
