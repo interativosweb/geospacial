@@ -1,197 +1,120 @@
-:root{
-  --bg: #f5f5f7;
-  --card: rgba(255,255,255,0.72);
-  --border: rgba(0,0,0,0.08);
-  --text: #111114;
-  --muted: rgba(17,17,20,0.62);
-  --accent: #0071e3;
-  --shadow: 0 18px 50px rgba(0,0,0,0.08);
-  --radius: 18px;
-}
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GeoSpacial — Geometria Espacial</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="dot"></div>
+        <div>
+          <div class="brand-title">GeoSpacial</div>
+          <div class="brand-sub">MVP • 2D + 3D</div>
+        </div>
+      </div>
 
-*{ box-sizing:border-box; }
-html,body{ height:100%; margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; color:var(--text); background: var(--bg); }
+      <div class="section">
+        <div class="section-title">Modo</div>
+        <div class="segmented">
+          <button id="mode2d" class="seg active">2D</button>
+          <button id="mode3d" class="seg">3D</button>
+        </div>
+      </div>
 
-.app{
-  height:100%;
-  display:grid;
-  grid-template-columns: 320px 1fr;
-}
+      <div id="panel2d" class="section">
+        <div class="section-title">Formas 2D</div>
+        <div class="btn-grid">
+          <button class="btn" data-2d="rect">Quadrado/Retângulo</button>
+          <button class="btn" data-2d="triangle">Triângulo</button>
+          <button class="btn" data-2d="circle">Círculo</button>
+        </div>
 
-.sidebar{
-  padding: 18px;
-  border-right: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.30));
-  backdrop-filter: blur(14px);
-  position: relative;
-}
+        <div class="section-title">Ações 2D</div>
+        <div class="btn-grid">
+          <button class="btn secondary" id="clear2d">Limpar 2D</button>
+        </div>
 
-.brand{
-  display:flex;
-  gap: 12px;
-  align-items:center;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--card);
-  box-shadow: var(--shadow);
-}
+        <div class="hint">
+          <b>Dica:</b> clique para selecionar e arraste para mover.
+        </div>
+      </div>
 
-.dot{
-  width: 14px; height: 14px; border-radius: 50%;
-  background: var(--accent);
-}
+      <div id="panel3d" class="section hidden">
+        <div class="section-title">Objetos 3D</div>
+        <div class="btn-grid">
+          <button class="btn" data-3d="cube">Cubo</button>
+          <button class="btn" data-3d="sphere">Esfera</button>
+          <button class="btn" data-3d="cylinder">Cilindro</button>
+          <button class="btn" data-3d="cone">Cone</button>
+          <button class="btn" data-3d="plane">Plano</button>
+        </div>
 
-.brand-title{ font-weight: 700; letter-spacing: -0.2px; }
-.brand-sub{ font-size: 12px; color: var(--muted); margin-top: 2px; }
+        <div class="section-title">Transformação</div>
+        <div class="segmented">
+          <button class="seg active" id="tMove">Mover</button>
+          <button class="seg" id="tRotate">Rotacionar</button>
+          <button class="seg" id="tScale">Escalar</button>
+        </div>
 
-.section{
-  margin-top: 14px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--card);
-}
+        <div class="section-title">Ações 3D</div>
+        <div class="btn-grid">
+          <button class="btn secondary" id="delete3d">Excluir selecionado</button>
+          <button class="btn secondary" id="reset3d">Reset câmera</button>
+          <button class="btn secondary" id="clear3d">Limpar 3D</button>
+        </div>
 
-.section-title{
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-  margin-bottom: 10px;
-}
+        <div class="hint">
+          <b>Dica:</b> botão esquerdo = orbitar • scroll = zoom • clique no objeto para selecionar • arraste o gizmo para transformar.
+        </div>
+      </div>
 
-.btn-grid{ display:grid; grid-template-columns: 1fr; gap: 10px; }
+      <div class="footer">
+        <div class="tiny">Feito com SVG (2D) + Three.js (3D).</div>
+      </div>
+    </aside>
 
-.btn{
-  appearance:none;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.78);
-  padding: 12px 12px;
-  border-radius: 14px;
-  cursor:pointer;
-  font-weight: 600;
-  transition: transform .06s ease, border-color .2s ease, background .2s ease;
-}
-.btn:hover{ border-color: rgba(0,0,0,0.14); }
-.btn:active{ transform: scale(0.99); }
-.btn.secondary{
-  background: rgba(255,255,255,0.50);
-  font-weight: 600;
-  color: rgba(17,17,20,0.84);
-}
+    <main class="main">
+      <header class="topbar">
+        <div class="title">Geometria Espacial, sem bagunça.</div>
+        <div class="badge" id="status">Modo 2D</div>
+      </header>
 
-.segmented{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.seg{
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.55);
-  padding: 10px 10px;
-  border-radius: 14px;
-  cursor:pointer;
-  font-weight: 700;
-}
-.seg.active{
-  background: rgba(0,113,227,0.12);
-  border-color: rgba(0,113,227,0.28);
-  color: #055fbf;
-}
+      <section class="stage">
+        <!-- 2D -->
+        <div id="stage2d" class="stage-layer">
+          <svg id="svg2d" class="svg2d" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <filter id="shadow">
+                <feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity="0.18"/>
+              </filter>
+            </defs>
+            <rect x="30" y="30" width="940" height="640" rx="18" ry="18"
+                  fill="rgba(255,255,255,0.65)" stroke="rgba(0,0,0,0.07)" />
+          </svg>
+        </div>
 
-.hint{
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.35;
-}
+        <!-- 3D -->
+        <div id="stage3d" class="stage-layer hidden">
+          <canvas id="canvas3d"></canvas>
+        </div>
+      </section>
+    </main>
+  </div>
 
-.footer{
-  position: absolute;
-  bottom: 14px;
-  left: 18px;
-  right: 18px;
-}
-.tiny{ font-size: 11px; color: rgba(17,17,20,0.5); }
-
-.main{
-  display:flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.topbar{
-  padding: 16px 18px;
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-}
-
-.title{
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-}
-
-.badge{
-  font-size: 12px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: rgba(255,255,255,0.65);
-  color: rgba(17,17,20,0.72);
-}
-
-/* =========================
-   Palco compacto e responsivo
-   ========================= */
-.stage{
-  flex: 1;
-  padding: 18px;
-  min-height: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stage-layer{
-  width: min(1100px, 100%);
-  height: min(720px, calc(100vh - 120px));
-
-  border-radius: 22px;
-  border: 1px solid var(--border);
-  background: radial-gradient(1200px 600px at 40% 10%, rgba(255,255,255,0.95), rgba(255,255,255,0.55));
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  position: relative;
-}
-
-.hidden{ display:none; }
-
-.svg2d{
-  width: 100%;
-  height: 100%;
-}
-
-#canvas3d{
-  width: 100%;
-  height: 100%;
-  display:block;
-}
-
-/* Responsivo para telas pequenas */
-@media (max-width: 900px){
-  .app{ grid-template-columns: 1fr; }
-  .sidebar{
-    position: static;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+  <!-- Three.js via importmap -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
   }
-  .footer{ position: static; margin-top: 10px; }
-  .stage-layer{
-    height: min(640px, calc(100vh - 220px));
-  }
-}
+  </script>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
