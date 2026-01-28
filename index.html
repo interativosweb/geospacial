@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GeoSpacial — Geometria Espacial (MVP)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="dot"></div>
+        <div>
+          <div class="brand-title">GeoSpacial</div>
+          <div class="brand-sub">MVP • 2D + 3D</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Modo</div>
+        <div class="segmented">
+          <button id="mode2d" class="seg active">2D</button>
+          <button id="mode3d" class="seg">3D</button>
+        </div>
+      </div>
+
+      <div id="panel2d" class="section">
+        <div class="section-title">Formas 2D</div>
+        <div class="btn-grid">
+          <button class="btn" data-2d="rect">Quadrado/Retângulo</button>
+          <button class="btn" data-2d="triangle">Triângulo</button>
+          <button class="btn" data-2d="circle">Círculo</button>
+        </div>
+
+        <div class="section-title">Ações 2D</div>
+        <div class="btn-grid">
+          <button class="btn secondary" id="clear2d">Limpar 2D</button>
+        </div>
+
+        <div class="hint">
+          <b>Dica:</b> clique para selecionar e arraste para mover.
+        </div>
+      </div>
+
+      <div id="panel3d" class="section hidden">
+        <div class="section-title">Objetos 3D</div>
+        <div class="btn-grid">
+          <button class="btn" data-3d="cube">Cubo</button>
+          <button class="btn" data-3d="sphere">Esfera</button>
+          <button class="btn" data-3d="cylinder">Cilindro</button>
+          <button class="btn" data-3d="cone">Cone</button>
+          <button class="btn" data-3d="plane">Plano</button>
+        </div>
+
+        <div class="section-title">Transformação</div>
+        <div class="segmented">
+          <button class="seg active" id="tMove">Mover</button>
+          <button class="seg" id="tRotate">Rotacionar</button>
+          <button class="seg" id="tScale">Escalar</button>
+        </div>
+
+        <div class="section-title">Ações 3D</div>
+        <div class="btn-grid">
+          <button class="btn secondary" id="delete3d">Excluir selecionado</button>
+          <button class="btn secondary" id="reset3d">Reset câmera</button>
+          <button class="btn secondary" id="clear3d">Limpar 3D</button>
+        </div>
+
+        <div class="hint">
+          <b>Dica:</b> botão esquerdo = orbitar • scroll = zoom • clique no objeto para selecionar.
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="tiny">Feito com SVG (2D) + Three.js (3D).</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="title">Geometria Espacial, sem bagunça.</div>
+        <div class="badge" id="status">Modo 2D</div>
+      </header>
+
+      <section class="stage">
+        <!-- 2D -->
+        <div id="stage2d" class="stage-layer">
+          <svg id="svg2d" class="svg2d" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <filter id="shadow">
+                <feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity="0.18"/>
+              </filter>
+            </defs>
+            <rect x="30" y="30" width="940" height="640" rx="18" ry="18"
+                  fill="rgba(255,255,255,0.65)" stroke="rgba(0,0,0,0.07)" />
+          </svg>
+        </div>
+
+        <!-- 3D -->
+        <div id="stage3d" class="stage-layer hidden">
+          <canvas id="canvas3d"></canvas>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Three.js via importmap -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
